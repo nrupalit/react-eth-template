@@ -1,10 +1,14 @@
 import React, { Component } from 'react'
+import Web3 from 'web3'
 import './App.css'
+import NewContract from '../abis/NewContract.json';
+
 
 class App extends Component {
 
   async componentWillMount() {
     await this.loadWeb3()
+    await this.loadBlockchainData()
   }
 
   async loadWeb3() {
@@ -20,10 +24,25 @@ class App extends Component {
     }
   }
 
+  async loadBlockchainData() {
+    const web3 = new Web3(Web3.givenProvider || "http://localhost:7585")
+    const accounts = await web3.eth.getAccounts()
+    this.setState({ account: accounts[0] })
+    const networkId = await web3.eth.net.getId()
+    
+    const todoListData = NewContract.networks[networkId]
+    const todoList = new web3.eth.Contract(NewContract.abi, todoListData.address)
+    this.setState({ todoList })
+    const taskCount = await todoList.methods.notNumber().call()
+    console.log(taskCount);
+  }
+
 
   constructor(props) {
     super(props)
     this.state = {
+      todoList: {},
+      account: ''
     }
   }
 
